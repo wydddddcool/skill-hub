@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillBox · 技能日报</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+
+<header class="header">
+  <div class="brand">
+    <div class="brand-icon">S</div>
+    <div class="brand-name">SkillBox<span class="cn">技能日报</span></div>
+  </div>
+  <nav class="header-tabs">
+    <button data-tab="daily" class="active">技能日报</button>
+    <button data-tab="scenes">场景合集</button>
+    <button data-tab="repo">宝藏仓库</button>
+  </nav>
+  <div class="header-search">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input id="searchInput" placeholder="搜索技能名称、描述、目录…">
+    <div class="search-mode" role="tablist" aria-label="搜索模式">
+      <button class="mode-btn active" data-mode="all"  title="全部字段" aria-label="全部">🔍</button>
+      <button class="mode-btn"        data-mode="name" title="仅匹配名称" aria-label="名称">🔤</button>
+      <button class="mode-btn"        data-mode="desc" title="仅匹配描述" aria-label="描述">📝</button>
+      <button class="mode-btn"        data-mode="repo" title="仅匹配仓库" aria-label="仓库">📦</button>
+    </div>
+  </div>
+  <div class="header-meta">
+    <span>共 <span class="badge-count" id="totalCount">--</span> 个技能</span>
+    <span id="fetchedAt"></span>
+    <button class="icon-btn fav-btn" id="favBtn" title="我的收藏（g f）">
+      <span>⭐</span>
+      <span class="fav-badge" id="favBadge" style="display:none;">0</span>
+    </button>
+    <button class="icon-btn" id="themeBtn" title="切换主题">🌓</button>
+    <button class="icon-btn" id="helpBtn" title="快捷键">?</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar-left">
+    <div class="sidebar-title">分类</div>
+    <div id="catList"></div>
+  </aside>
+
+  <main class="main">
+    <div id="tabContent"></div>
+  </main>
+
+  <aside class="sidebar-right">
+    <div class="timeline-header">
+      <div class="timeline-latest-label">最新一期</div>
+      <div class="timeline-latest-date" id="latestDate">--</div>
+      <div class="timeline-latest-count" id="latestCount"></div>
+    </div>
+    <div id="timeline"></div>
+  </aside>
+</div>
+
+<!-- 详情 drawer -->
+<div class="drawer-bg" id="drawerBg"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <span class="card-name" id="drawerName"></span>
+    <button class="modal-close" id="drawerClose">×</button>
+  </div>
+  <nav class="drawer-tabs" id="drawerTabs">
+    <button data-pane="overview" class="active">概览</button>
+    <button data-pane="usage">用法</button>
+    <button data-pane="example">示例</button>
+    <button data-pane="related">相关</button>
+    <button data-pane="history">历史</button>
+  </nav>
+  <div class="drawer-body" id="drawerBody">点开左侧任意卡片查看详情</div>
+</aside>
+
+<!-- 顶部 toast -->
+<div class="toast" id="toast"></div>
+
+<!-- 快捷键帮助 -->
+<div class="help-panel" id="helpPanel">
+  <h4>快捷键</h4>
+  <div class="row"><span>聚焦搜索</span><kbd>/</kbd></div>
+  <div class="row"><span>技能日报</span><kbd>t</kbd></div>
+  <div class="row"><span>场景合集</span><kbd>s</kbd></div>
+  <div class="row"><span>宝藏仓库</span><kbd>r</kbd></div>
+  <div class="row"><span>切换主题</span><kbd>d</kbd></div>
+  <div class="row"><span>显示 / 隐藏本面板</span><kbd>?</kbd></div>
+  <div class="row"><span>切换收藏（卡片聚焦时）</span><kbd>f</kbd></div>
+  <div class="row"><span>下一张卡片</span><kbd>j</kbd></div>
+  <div class="row"><span>上一张卡片</span><kbd>k</kbd></div>
+  <div class="row"><span>打开收藏抽屉</span><kbd>g</kbd> <kbd>f</kbd></div>
+  <div class="row"><span>关闭弹层 / drawer</span><kbd>Esc</kbd></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script type="module" src="/app.js"></script>
+</body>
+</html>
