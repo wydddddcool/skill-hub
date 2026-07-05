@@ -1,0 +1,20 @@
+{
+  "2026-07-05": {
+    "date": "2026-07-05",
+    "newCount": 5,
+    "newIds": [
+      "anthropics/skills@skills/algorithmic-art/SKILL.md",
+      "anthropics/skills@skills/canvas-design/SKILL.md",
+      "anthropics/skills@skills/claude-api/SKILL.md",
+      "anthropics/skills@skills/frontend-design/SKILL.md",
+      "anthropics/skills@skills/internal-comms/SKILL.md"
+    ],
+    "newNames": [
+      "algorithmic-art",
+      "canvas-design",
+      "claude-api",
+      "frontend-design",
+      "internal-comms"
+    ]
+  }
+}

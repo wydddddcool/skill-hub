@@ -136,7 +136,7 @@ skill-hub/
 
 ## 📜 许可
 
-MIT License. 详见 [LICENSE](LICENSE)（待补）。
+MIT License. 详见 [LICENSE](LICENSE)。
 
 ---
 

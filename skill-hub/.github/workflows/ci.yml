@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate skill-hub
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Smoke test - boot server and curl API
+        run: |
+          # 后台启动服务（不需要数据，纯启动验证）
+          PORT=14321 node server.mjs &
+          SERVER_PID=$!
+          sleep 2
+
+          # 探测首页
+          echo "--- GET / ---"
+          curl -fsS http://127.0.0.1:14321/ -o /dev/null -w "HTTP %{http_code}\n"
+
+          # 探测 API（即使 skills.json 不存在也允许返回 500 / 空数组）
+          echo "--- GET /api/skills ---"
+          curl -fsS http://127.0.0.1:14321/api/skills -o /tmp/skills.json -w "HTTP %{http_code}\n" || echo "skills.json 可能不存在，但服务启动成功"
+
+          echo "--- GET /api/categories ---"
+          curl -fsS http://127.0.0.1:14321/api/categories -w "\nHTTP %{http_code}\n" || echo "(同上，允许失败)"
+
+          echo "--- GET /api/stats ---"
+          curl -fsS http://127.0.0.1:14321/api/stats -w "\nHTTP %{http_code}\n" || echo "(同上，允许失败)"
+
+          # 检查静态资源 MIME
+          echo "--- GET /app.css ---"
+          curl -fsS http://127.0.0.1:14321/app.css -o /dev/null -w "HTTP %{http_code} / Content-Type: %{content_type}\n"
+
+          echo "--- GET /app.js ---"
+          curl -fsS http://127.0.0.1:14321/app.js -o /dev/null -w "HTTP %{http_code} / Content-Type: %{content_type}\n"
+
+          # 关掉后台服务
+          kill $SERVER_PID 2>/dev/null || true
+          wait $SERVER_PID 2>/dev/null || true
+
+      - name: Syntax check - Node ESM scripts
+        run: |
+          echo "--- node --check on all .mjs files ---"
+          for f in $(find . -name "*.mjs" -not -path "./node_modules/*"); do
+            echo "Checking: $f"
+            node --check "$f" || exit 1
+          done
+          echo "All .mjs files passed syntax check ✓"
+
+      - name: Validate package.json (optional)
+        run: |
+          # 此项目无 package.json，跳过 npm install；只确认 .trae/specs 存在
+          test -f .trae/specs/skill-hub-full-clone/spec.md && echo "spec.md ✓"
+          test -f .trae/specs/skill-hub-full-clone/checklist.md && echo "checklist.md ✓"
+          test -f .trae/specs/skill-hub-full-clone/tasks.md && echo "tasks.md ✓"
+          test -f README.md && echo "README.md ✓"
+          test -f LICENSE && echo "LICENSE ✓"
+          test -f .gitignore && echo ".gitignore ✓"
