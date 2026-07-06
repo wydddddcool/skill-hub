@@ -28,6 +28,7 @@ const DAILY_INDEX = path.join(__dirname, 'data', 'daily-index.json');
 const STATS_FILE = path.join(__dirname, 'data', 'stats.json');
 const SNAPSHOT_DIR = path.join(__dirname, 'data', 'snapshots');
 const PUBLIC_DIR = path.join(__dirname, 'public');
+const MCP_SERVERS_FILE = path.join(__dirname, 'data', 'mcp-servers.json');
 const PORT = process.env.PORT || 4321;
 
 let cache = null;
@@ -36,6 +37,9 @@ let statsCache = null;
 let statsMtime = 0;
 let dailyCache = null;
 let dailyMtime = 0;
+let mcpCache = null;
+let mcpCacheKey = ''; // "size:mtimeMs" — 联合键，避免 mtime 不递增导致不刷新
+const MCP_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 function loadData() {
   const stat = fs.statSync(DATA_FILE);
@@ -71,6 +75,35 @@ function loadDailyIndex() {
   }
 }
 
+function loadMcpServers({ force = false } = {}) {
+  if (!fs.existsSync(MCP_SERVERS_FILE)) {
+    mcpCache = { servers: [], count: 0, updatedAt: null, version: null, fileKey: '' };
+    mcpCacheKey = '';
+    return mcpCache;
+  }
+  const stat = fs.statSync(MCP_SERVERS_FILE);
+  // 联合键：size + mtime 一起比，避免编辑器 flush 不改 mtime、git pull 同秒覆盖等场景下缓存不刷新
+  const key = `${stat.size}:${stat.mtimeMs}`;
+  if (!force && mcpCache && mcpCacheKey === key) return mcpCache;
+  try {
+    const raw = JSON.parse(fs.readFileSync(MCP_SERVERS_FILE, 'utf-8'));
+    mcpCache = {
+      servers: raw.servers || [],
+      count: (raw.servers || []).length,
+      updatedAt: raw.updatedAt || null,
+      version: raw.version || null,
+      fileKey: key,
+    };
+    mcpCacheKey = key;
+    return mcpCache;
+  } catch (e) {
+    console.error('[mcp-servers] parse error:', e.message);
+    mcpCache = { servers: [], count: 0, updatedAt: null, version: null, fileKey: key };
+    mcpCacheKey = key; // 即使解析失败也记住"已经读过了"，避免坏文件一直被反复读
+    return mcpCache;
+  }
+}
+
 function parseQuery(url) {
   const q = url.split('?')[1];
   if (!q) return {};
@@ -88,7 +121,9 @@ function sendJson(res, obj, status = 200) {
   res.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
-    'Cache-Control': 'no-cache',
+    'Cache-Control': 'no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
   });
   res.end(body);
 }
@@ -368,6 +403,15 @@ async function handleApi(req, res, pathname, query) {
     return sendJson(res, {
       scenes: Object.entries(data.byScene || {}).sort((a, b) => b[1] - a[1]),
     });
+  }
+
+  // ===== GET /api/mcp-servers[?reload=1] =====
+  if (pathname === '/api/mcp-servers' && req.method === 'GET') {
+    const q = parseQuery(req.url);
+    const force = q.reload === '1' || q.reload === 'true';
+    const payload = loadMcpServers({ force });
+    if (force) payload.reloaded = true;
+    return sendJson(res, payload);
   }
 
   sendJson(res, { error: 'not found' }, 404);
