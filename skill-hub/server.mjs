@@ -28,6 +28,7 @@ const DAILY_INDEX = path.join(__dirname, 'data', 'daily-index.json');
 const STATS_FILE = path.join(__dirname, 'data', 'stats.json');
 const SNAPSHOT_DIR = path.join(__dirname, 'data', 'snapshots');
 const PUBLIC_DIR = path.join(__dirname, 'public');
+const MCP_SERVERS_FILE = path.join(__dirname, 'data', 'mcp-servers.json');
 const PORT = process.env.PORT || 4321;
 
 let cache = null;
@@ -36,6 +37,9 @@ let statsCache = null;
 let statsMtime = 0;
 let dailyCache = null;
 let dailyMtime = 0;
+let mcpCache = null;
+let mcpCacheAt = 0;
+const MCP_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 function loadData() {
   const stat = fs.statSync(DATA_FILE);
@@ -68,6 +72,32 @@ function loadDailyIndex() {
     return dailyCache;
   } catch {
     return {};
+  }
+}
+
+function loadMcpServers() {
+  if (!fs.existsSync(MCP_SERVERS_FILE)) {
+    mcpCache = { servers: [], count: 0, updatedAt: null, version: null };
+    mcpCacheAt = 0;
+    return mcpCache;
+  }
+  const stat = fs.statSync(MCP_SERVERS_FILE);
+  if (mcpCache && mcpCacheAt === stat.mtimeMs && Date.now() - mcpCacheAt < MCP_CACHE_TTL_MS) return mcpCache;
+  try {
+    const raw = JSON.parse(fs.readFileSync(MCP_SERVERS_FILE, 'utf-8'));
+    mcpCache = {
+      servers: raw.servers || [],
+      count: (raw.servers || []).length,
+      updatedAt: raw.updatedAt || null,
+      version: raw.version || null,
+    };
+    mcpCacheAt = stat.mtimeMs;
+    return mcpCache;
+  } catch (e) {
+    console.error('[mcp-servers] parse error:', e.message);
+    mcpCache = { servers: [], count: 0, updatedAt: null, version: null };
+    mcpCacheAt = 0;
+    return mcpCache;
   }
 }
 
@@ -368,6 +398,12 @@ async function handleApi(req, res, pathname, query) {
     return sendJson(res, {
       scenes: Object.entries(data.byScene || {}).sort((a, b) => b[1] - a[1]),
     });
+  }
+
+  // ===== GET /api/mcp-servers =====
+  if (pathname === '/api/mcp-servers' && req.method === 'GET') {
+    const payload = loadMcpServers();
+    return sendJson(res, payload);
   }
 
   sendJson(res, { error: 'not found' }, 404);

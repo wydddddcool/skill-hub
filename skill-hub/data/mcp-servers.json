@@ -1,0 +1,52 @@
+{
+  "version": "1.0.0",
+  "updatedAt": "2026-07-06",
+  "description": "精选 MCP（Model Context Protocol）服务器列表 — 真正暴露 JSON-RPC over HTTPS 端点的服务（区别于 wrapper skill）",
+  "servers": [
+    {
+      "id": "cedar-toy",
+      "name": "CEDAR TOY",
+      "url": "https://toy.cedarstar.org",
+      "protocol": "MCP 2024-11-05",
+      "description": "CEDAR 团队的开源游戏 MCP 服务器，把 9 个小游戏（井字棋、五子棋、贪吃蛇、2048、扫雷等）暴露为 MCP 工具，AI 助手可直接调用并显示在对话窗口。",
+      "tools": [
+        "tictactoe",
+        "gomoku",
+        "snake",
+        "minesweeper",
+        "2048",
+        "memory-cards",
+        "rock-paper-scissors",
+        "number-guess",
+        "color-match"
+      ],
+      "logo": "https://toy.cedarstar.org/favicon.ico",
+      "category": "demo",
+      "addedAt": "2026-07-06",
+      "tags": ["games", "demo", "cedar", "open-source"]
+    },
+    {
+      "id": "anthropic-mcp-official",
+      "name": "Anthropic MCP 官方示例仓库",
+      "url": "https://github.com/modelcontextprotocol/servers",
+      "protocol": "MCP 2024-11-05",
+      "description": "Anthropic 官方的 MCP 服务器参考实现集合，包含文件系统、Git、GitHub、Google Drive、PostgreSQL、Slack 等 20+ 真实生产级集成。每个 server 独立子目录，可直接拿来用或二次开发。",
+      "tools": [
+        "filesystem",
+        "git",
+        "github",
+        "google-drive",
+        "postgres",
+        "slack",
+        "puppeteer",
+        "fetch",
+        "memory",
+        "everything"
+      ],
+      "logo": "https://github.com/modelcontextprotocol.png",
+      "category": "reference",
+      "addedAt": "2026-07-06",
+      "tags": ["anthropic", "reference", "official", "production-ready"]
+    }
+  ]
+}
