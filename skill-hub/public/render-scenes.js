@@ -68,10 +68,16 @@ function buildMcpZone(servers) {
 }
 
 async function loadMcpServers() {
+  // 加 ?t=Date.now() 强制绕开浏览器 HTTP 缓存（即使后端 no-store，部分代理/CDN 仍可能缓存）
+  const url = `/api/mcp-servers?t=${Date.now()}`;
   try {
-    const res = await fetch('/api/mcp-servers');
-    if (!res.ok) return [];
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) {
+      console.warn('[mcp-servers] http', res.status, url);
+      return [];
+    }
     const data = await res.json();
+    console.log('[mcp-servers] loaded', data.count, 'servers, updatedAt=', data.updatedAt, 'fileKey=', data.fileKey);
     return data.servers || [];
   } catch (e) {
     console.warn('[mcp-servers] load failed:', e.message);
